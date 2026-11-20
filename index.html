@@ -1,13 +1,105 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0; url=./PennyQuest-Website/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PennyQuest</title>
-  <script>location.replace('./PennyQuest-Website/');</script>
+  <style>html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block}body{overflow:hidden}</style>
 </head>
 <body>
-  <p>PennyQuest wordt geopend. <a href="./PennyQuest-Website/">Klik hier als je niet automatisch wordt doorgestuurd.</a></p>
+  <iframe id="app" title="PennyQuest" src="./PennyQuest-Website/"></iframe>
+  <script>
+    const app = document.getElementById('app');
+    app.addEventListener('load', () => {
+      try {
+        const w = app.contentWindow;
+        const d = w.document;
+        const oldRender = w.render;
+        const bank = [
+          ['save-small','Move any amount into savings',10],
+          ['check-balance','Check one account balance',10],
+          ['review-spending','Review this week’s spending',15],
+          ['plan-week','Set or adjust a weekly spending plan',20],
+          ['log-purchase','Log a purchase, if you made one',10],
+          ['pause-wish','Add an impulse purchase to your wishlist',15],
+          ['wait-before-buy','Wait 24 hours before a non-essential purchase',25],
+          ['compare-prices','Compare prices before buying something',20],
+          ['cancel-sub','Check for a subscription you no longer use',30],
+          ['check-bill','Check an upcoming bill and its due date',20],
+          ['meal-plan','Plan one low-cost meal',15],
+          ['no-spend-day','Choose one no-spend day, if practical',30],
+          ['save-windfall','Save part of any unexpected money',25],
+          ['set-goal','Add or update a savings goal',20],
+          ['check-goal','Check your progress toward one goal',10],
+          ['review-plan','Adjust your plan to fit this week',25],
+          ['cash-check','Check your available spending money',10],
+          ['find-fee','Look for a bank fee you can avoid',40],
+          ['sell-unused','List one unused item for sale',40],
+          ['celebrate-progress','Notice one money choice you feel good about',15]
+        ].map(([id, text, xp]) => ({id, text, xp}));
+
+        function getData() { return w.eval('data'); }
+        function storeData(data) {
+          w.localStorage.setItem('pennyquest-v1', JSON.stringify(data));
+        }
+        function prepareWeek() {
+          const data = getData();
+          const week = w.weekKey();
+          if (data.weeklyQuestWeek !== week || !Array.isArray(data.weeklyQuestIds)) {
+            const shuffled = bank.slice();
+            for (let i = shuffled.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            data.weeklyQuestWeek = week;
+            data.weeklyQuestIds = shuffled.slice(0, 5).map(q => q.id);
+            data.quests = [];
+            storeData(data);
+          }
+          const ids = data.weeklyQuestIds;
+          return {data, quests: ids.map(id => bank.find(q => q.id === id)).filter(Boolean)};
+        }
+        function renderWeekly() {
+          const result = prepareWeek();
+          const data = result.data;
+          const quests = result.quests;
+          const list = d.getElementById('questList');
+          if (!list) return;
+          const earned = quests.filter(q => data.quests.includes(q.id)).reduce((sum, q) => sum + q.xp, 0);
+          const possible = quests.reduce((sum, q) => sum + q.xp, 0);
+          list.innerHTML = quests.map(q => '<div class="quest"><input type="checkbox" id="q-' + q.id + '" ' + (data.quests.includes(q.id) ? 'checked' : '') + ' onchange="toggleQuest(\'' + q.id + '\',this.checked)"><label for="q-' + q.id + '">' + q.text + '<div class="small">+' + q.xp + ' XP</div></label></div>').join('');
+          d.getElementById('weekXP').textContent = earned + ' / ' + possible + ' XP';
+          d.getElementById('weekBar').style.width = (possible ? earned / possible * 100 : 0) + '%';
+          const note = d.querySelector('#quests .card > p.small');
+          if (note) note.textContent = 'Five quests are randomly picked from a pool of 20 each week. Complete them for different XP rewards.';
+        }
+        w.toggleQuest = (id, on) => {
+          const result = prepareWeek();
+          const data = result.data;
+          const quest = result.quests.find(q => q.id === id);
+          if (!quest) return;
+          const done = data.quests.includes(id);
+          if (on && !done) { data.quests.push(id); data.xp += quest.xp; }
+          if (!on && done) { data.quests = data.quests.filter(item => item !== id); data.xp = Math.max(0, data.xp - quest.xp); }
+          storeData(data);
+          w.render();
+        };
+        w.render = () => { oldRender(); renderWeekly(); };
+        const reset = d.getElementById('resetQuests');
+        if (reset) reset.onclick = () => {
+          if (!w.confirm('Start a new week of quests? Your total XP stays.')) return;
+          const data = getData();
+          data.quests = [];
+          data.weeklyQuestWeek = '';
+          data.week = w.weekKey();
+          storeData(data);
+          w.render();
+        };
+        w.render();
+      } catch (error) {
+        console.error('Could not load weekly quests:', error);
+      }
+    });
+  </script>
 </body>
 </html>
