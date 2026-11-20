@@ -1,9 +1,9 @@
 {
-  "name": "PennyQuest — Personal Budget",
+  "name": "PennyQuest — Money, made gentler",
   "short_name": "PennyQuest",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#101827",
-  "description": "A private, game-like personal budgeting app."
+  "background_color": "#f7f5ef",
+  "theme_color": "#f7f5ef",
+  "description": "A free, private, device-only budgeting companion with gentle spending tools."
 }
