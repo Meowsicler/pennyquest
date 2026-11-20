@@ -3,213 +3,122 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101a2d">
   <title>PennyQuest</title>
-  <style>html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block}body{overflow:hidden}</style>
+  <style>
+    html,body,iframe{width:100%;height:100%;margin:0;border:0;display:block}body{overflow:hidden}
+    #pq-consent{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;background:#07101deF;color:#edf3ff;font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+    #pq-consent[hidden]{display:none}#pq-consent .box{width:min(560px,100%);max-height:90vh;overflow:auto;padding:24px;border:1px solid #344761;border-radius:20px;background:#141f31;box-shadow:0 20px 70px #0008}
+    #pq-consent h1{margin-top:0;font-size:1.55rem}#pq-consent a{color:#8ebeff}#pq-consent .check{display:flex;align-items:flex-start;gap:12px;margin:18px 0}#pq-consent input{width:20px;height:20px;flex:0 0 auto;margin-top:3px;accent-color:#6de0a4}
+    #pq-consent button{width:100%;border:0;border-radius:12px;padding:13px;background:#6de0a4;color:#092017;font:inherit;font-weight:800}#pq-consent button:disabled{opacity:.5}#pq-consent .note{font-size:.85rem;color:#bac7d9}
+  </style>
 </head>
 <body>
   <iframe id="app" title="PennyQuest" src="./PennyQuest-Website/"></iframe>
+  <div id="pq-consent" role="dialog" aria-modal="true" aria-labelledby="pq-consent-title">
+    <div class="box">
+      <h1 id="pq-consent-title">Welkom bij PennyQuest</h1>
+      <p>PennyQuest is een gratis hulpmiddel voor je eigen geldzaken. Je hebt geen account nodig. Je financiële invoer en instellingen worden lokaal in deze browser opgeslagen; de app stuurt die niet naar een PennyQuest-account of -server. De hostingprovider kan wel technische bezoekgegevens verwerken.</p>
+      <p>De app is geen financieel advies, schuldhulpverlening of medische of psychologische zorg. Controleer bedragen zelf. Gebruik geen bankwachtwoorden of betaalkaartgegevens.</p>
+      <p>Lees vóór gebruik de <a href="./GEBRUIKSVOORWAARDEN.md" target="_blank" rel="noopener">gebruiksvoorwaarden</a> en <a href="./PRIVACYVERKLARING.md" target="_blank" rel="noopener">privacyverklaring</a>.</p>
+      <label class="check"><input id="pq-consent-check" type="checkbox"><span>Ik heb de gebruiksvoorwaarden gelezen en accepteer deze. Ik heb ook de privacyverklaring gelezen.</span></label>
+      <button id="pq-consent-continue" type="button" disabled>Verder naar de app</button>
+      <p class="note">Je acceptatie wordt alleen op dit apparaat in deze browser bewaard. Er wordt geen account aangemaakt.</p>
+    </div>
+  </div>
   <script>
-    const app = document.getElementById('app');
-    app.addEventListener('load', () => {
+    (() => {
+      const CONSENT_KEY = 'pennyquest-terms-accepted-v1';
+      const overlay = document.getElementById('pq-consent');
+      const check = document.getElementById('pq-consent-check');
+      const button = document.getElementById('pq-consent-continue');
       try {
-        const w = app.contentWindow;
-        const d = w.document;
-        const oldRender = w.render;
-        const bank = [
-          ['save-small','Move any amount into savings',10],
-          ['check-balance','Check one account balance',10],
-          ['review-spending','Review this week’s spending',15],
-          ['plan-week','Set or adjust a weekly spending plan',20],
-          ['log-purchase','Log a purchase, if you made one',10],
-          ['pause-wish','Add an impulse purchase to your wishlist',15],
-          ['wait-before-buy','Wait 24 hours before a non-essential purchase',25],
-          ['compare-prices','Compare prices before buying something',20],
-          ['cancel-sub','Check for a subscription you no longer use',30],
-          ['check-bill','Check an upcoming bill and its due date',20],
-          ['meal-plan','Plan one low-cost meal',15],
-          ['no-spend-day','Choose one no-spend day, if practical',30],
-          ['save-windfall','Save part of any unexpected money',25],
-          ['set-goal','Add or update a savings goal',20],
-          ['check-goal','Check your progress toward one goal',10],
-          ['review-plan','Adjust your plan to fit this week',25],
-          ['cash-check','Check your available spending money',10],
-          ['find-fee','Look for a bank fee you can avoid',40],
-          ['sell-unused','List one unused item for sale',40],
-          ['celebrate-progress','Notice one money choice you feel good about',15],
-          ['open-bank-app','Open your banking app and just look',10],
-          ['write-one-bill','Write down one bill you need to remember',10],
-          ['check-calendar','Check your calendar for an upcoming expense',15],
-          ['move-one-euro','Move €1 to a savings goal, if you can',15],
-          ['save-receipt','Keep or photograph one receipt',10],
-          ['unsubscribe','Find out how to cancel an unused subscription',25],
-          ['price-alert','Set a price alert instead of buying right away',20],
-          ['use-what-you-have','Use something you already have instead of buying',20],
-          ['ask-for-help','Ask someone you trust to help with one money task',25],
-          ['five-minute-money','Spend five minutes on one money task',20],
-          ['set-reminder','Set a reminder for one financial task',10],
-          ['sort-one-paper','Sort one money-related letter or email',15],
-          ['check-direct-debit','Check one automatic payment',15],
-          ['plan-treat','Plan a small treat that fits your budget',20],
-          ['pause-and-breathe','Take a breath before a money decision',10],
-          ['break-task-down','Break one money task into a tiny first step',15],
-          ['check-savings-rate','Check whether your savings account has a rate',25],
-          ['choose-task','Pick just one money task to do today',10],
-          ['celebrate-starting','Give yourself credit for getting started',10],
-          ['update-backup','Check that your PennyQuest backup is up to date',20]
-        ].map(([id, text, xp]) => ({id, text, xp}));
+        if (localStorage.getItem(CONSENT_KEY) === 'yes') overlay.hidden = true;
+      } catch (_) { /* If storage is unavailable, ask again on the next visit. */ }
+      check.addEventListener('change', () => { button.disabled = !check.checked; });
+      button.addEventListener('click', () => {
+        if (!check.checked) return;
+        try { localStorage.setItem(CONSENT_KEY, 'yes'); } catch (_) {}
+        overlay.hidden = true;
+      });
 
-        function getData() { return w.eval('data'); }
-        function storeData(data) {
-          w.localStorage.setItem('pennyquest-v1', JSON.stringify(data));
-        }
-        function prepareWeek() {
-          const data = getData();
-          const week = w.weekKey();
-          if (data.weeklyQuestWeek !== week || !Array.isArray(data.weeklyQuestIds)) {
-            const shuffled = bank.slice();
-            for (let i = shuffled.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      const app = document.getElementById('app');
+      app.addEventListener('load', () => {
+        try {
+          const w = app.contentWindow;
+          const d = w.document;
+          const originalRender = w.render;
+          const quests = [
+            ['save-small','Move any amount into savings',10],['check-balance','Check one account balance',10],['review-spending','Review this week’s spending',15],['plan-week','Set or adjust a weekly spending plan',20],['log-purchase','Log a purchase, if you made one',10],['pause-wish','Add an impulse purchase to your wishlist',15],['wait-before-buy','Wait 24 hours before a non-essential purchase',25],['compare-prices','Compare prices before buying something',20],['cancel-sub','Check for a subscription you no longer use',30],['check-bill','Check an upcoming bill and its due date',20],['meal-plan','Plan one low-cost meal',15],['no-spend-day','Choose one no-spend day, if practical',30],['save-windfall','Save part of any unexpected money',25],['set-goal','Add or update a savings goal',20],['check-goal','Check your progress toward one goal',10],['review-plan','Adjust your plan to fit this week',25],['cash-check','Check your available spending money',10],['find-fee','Look for a bank fee you can avoid',40],['sell-unused','List one unused item for sale',40],['celebrate-progress','Notice one money choice you feel good about',15],['open-bank-app','Open your banking app and just look',10],['write-one-bill','Write down one bill you need to remember',10],['check-calendar','Check your calendar for an upcoming expense',15],['move-one-euro','Move €1 to a savings goal, if you can',15],['save-receipt','Keep or photograph one receipt',10],['unsubscribe','Find out how to cancel an unused subscription',25],['price-alert','Set a price alert instead of buying right away',20],['use-what-you-have','Use something you already have instead of buying',20],['ask-for-help','Ask someone you trust to help with one money task',25],['five-minute-money','Spend five minutes on one money task',20],['set-reminder','Set a reminder for one financial task',10],['sort-one-paper','Sort one money-related letter or email',15],['check-direct-debit','Check one automatic payment',15],['plan-treat','Plan a small treat that fits your budget',20],['pause-and-breathe','Take a breath before a money decision',10],['break-task-down','Break one money task into a tiny first step',15],['check-savings-rate','Check whether your savings account has a rate',25],['choose-task','Pick just one money task to do today',10],['celebrate-starting','Give yourself credit for getting started',10],['update-backup','Check that your PennyQuest backup is up to date',20]
+          ].map(([id,text,xp]) => ({id,text,xp}));
+          const readData = () => w.eval('data');
+          const saveData = data => w.localStorage.setItem('pennyquest-v1', JSON.stringify(data));
+          const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+          function prepareWeek() {
+            const data = readData();
+            const week = w.weekKey();
+            if (data.weeklyQuestWeek !== week || !Array.isArray(data.weeklyQuestIds)) {
+              const shuffled = quests.slice();
+              for (let i=shuffled.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]; }
+              data.weeklyQuestWeek=week; data.weeklyQuestIds=shuffled.slice(0,5).map(q=>q.id); data.quests=[]; saveData(data);
             }
-            data.weeklyQuestWeek = week;
-            data.weeklyQuestIds = shuffled.slice(0, 5).map(q => q.id);
-            data.quests = [];
-            storeData(data);
+            return {data, chosen:data.weeklyQuestIds.map(id=>quests.find(q=>q.id===id)).filter(Boolean)};
           }
-          return {data, quests: data.weeklyQuestIds.map(id => bank.find(q => q.id === id)).filter(Boolean)};
-        }
-
-        function addBlobBuddy() {
-          if (d.getElementById('pennyquest-buddy')) return;
-          const style = d.createElement('style');
-          style.textContent = `
-            #pennyquest-buddy{display:flex;align-items:center;gap:16px;margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(26,42,64,.98),rgba(18,30,47,.98))}
-            #pennyquest-buddy .buddy-art{width:78px;height:68px;flex:0 0 78px;display:grid;place-items:center}
-            #pennyquest-buddy .blob{position:relative;width:58px;height:51px;border-radius:48% 52% 43% 57%/57% 51% 49% 43%;background:linear-gradient(145deg,#8decc0,#54c99b);box-shadow:inset -7px -6px 0 #28a97833,0 8px 18px #0003;animation:blob-float 3.2s ease-in-out infinite,blob-morph 5s ease-in-out infinite}
-            #pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{content:"";position:absolute;top:21px;width:5px;height:7px;border-radius:50%;background:#123d32;animation:blob-blink 4.8s infinite}
-            #pennyquest-buddy .blob:before{left:18px}#pennyquest-buddy .blob:after{right:18px}
-            #pennyquest-buddy .blob-mouth{position:absolute;left:25px;top:31px;width:9px;height:5px;border-bottom:2px solid #123d32;border-radius:0 0 10px 10px}
-            #pennyquest-buddy .buddy-copy{min-width:0}#pennyquest-buddy .buddy-copy strong{display:block;margin-bottom:4px;color:var(--text)}#pennyquest-buddy .buddy-copy span{font-size:12px;line-height:1.45;color:var(--muted)}
-            @keyframes blob-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(4deg)}}
-            @keyframes blob-morph{0%,100%{border-radius:48% 52% 43% 57%/57% 51% 49% 43%}50%{border-radius:55% 45% 55% 45%/47% 60% 40% 53%}}
-            @keyframes blob-blink{0%,46%,50%,100%{transform:scaleY(1)}48%{transform:scaleY(.12)}}
-            @media(prefers-reduced-motion:reduce){#pennyquest-buddy .blob,#pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{animation:none}}
-          `;
-          d.head.appendChild(style);
-          const home = d.getElementById('home');
-          const intro = home && home.querySelector('h1 + p');
-          if (!intro) return;
-          const buddy = d.createElement('div');
-          buddy.id = 'pennyquest-buddy';
-          buddy.setAttribute('role','status');
-          buddy.innerHTML = '<div class="buddy-art" aria-hidden="true"><div class="blob"><i class="blob-mouth"></i></div></div><div class="buddy-copy"><strong>Hi, I’m Pip!</strong><span id="buddy-message">One tiny step is enough. You can come back whenever you like.</span></div>';
-          intro.insertAdjacentElement('afterend', buddy);
-        }
-
-        function addSettingsAndNotices() {
-          if (d.getElementById('pq-settings')) return;
-          const tabs = d.querySelector('.tabs');
-          const main = d.querySelector('main');
-          if (!tabs || !main) return;
-          const tab = d.createElement('button');
-          tab.type = 'button';
-          tab.dataset.tab = 'pq-settings';
-          tab.textContent = 'Settings & info';
-          tabs.appendChild(tab);
-          const section = d.createElement('section');
-          section.id = 'pq-settings';
-          section.className = 'page';
-          section.innerHTML = `
-            <h1>Settings & information</h1>
-            <p class="muted">A few personal settings and important information about this tool.</p>
-            <div class="card">
-              <h2>Your name</h2>
-              <label class="small" for="pq-name">What should PennyQuest call you? (Optional)</label>
-              <input id="pq-name" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name or nickname">
-              <button class="full" id="pq-save-name">Save name</button>
-              <p class="small">Your name is saved only in this browser on this device. Leave it blank to use the default greeting.</p>
-            </div>
-            <div class="card">
-              <h2>About this tool</h2>
-              <p class="small">PennyQuest is a general budgeting and educational tool. It is not a bank, financial adviser, debt counsellor, medical provider, or ADHD treatment. Its suggestions and calculations are general and may not fit your circumstances. Check figures yourself and seek qualified, independent advice for important financial decisions.</p>
-              <p class="small">Using this tool does not guarantee savings or any particular financial result. You decide whether to act on a suggestion. Do not enter bank login details, payment-card information, or other highly sensitive information.</p>
-            </div>
-            <div class="card">
-              <h2>Privacy & your data</h2>
-              <p class="small">The app stores the information you enter in your browser’s local storage on this device; the app code does not send that information to the PennyQuest owner. Local storage is not encrypted by this app. Anyone with access to this browser or device may be able to see it. Avoid using this app on a shared device, and use the export feature to make a backup before clearing browser data.</p>
-              <p class="small">GitHub Pages hosts this website. The hosting provider may process technical connection data under its own policies. Clearing this site’s browser storage removes locally saved app data. An exported backup file is not protected by the app, so store it securely.</p>
-            </div>
-            <div class="card">
-              <h2>Important</h2>
-              <p class="small">This information is a plain-language explanation, not legal advice or a guarantee of legal compliance or protection from liability. Before inviting the public to use the app, review the laws and platform requirements that apply to you. Get advice from a qualified Dutch/EU legal or privacy professional if you need advice tailored to your situation. Re-check these notices if you add analytics, ads, accounts, or data sharing.</p>
-            </div>`;
-          main.appendChild(section);
-          tab.addEventListener('click', () => w.setTab('pq-settings'));
-          const nameInput = section.querySelector('#pq-name');
-          const currentName = getData().displayName || '';
-          nameInput.value = currentName;
-          section.querySelector('#pq-save-name').addEventListener('click', () => {
-            const data = getData();
-            data.displayName = nameInput.value.trim().slice(0, 40);
-            storeData(data);
-            updateName();
-            const button = section.querySelector('#pq-save-name');
-            button.textContent = 'Saved';
-            setTimeout(() => { button.textContent = 'Save name'; }, 1400);
-          });
-        }
-
-        function updateName() {
-          const data = getData();
-          const name = (data.displayName || '').trim();
-          const heading = d.querySelector('#pennyquest-buddy .buddy-copy strong');
-          if (heading) heading.textContent = name ? 'Hi, ' + name + '!' : 'Hi, I’m Pip!';
-        }
-
-        function renderWeekly() {
-          const {data, quests} = prepareWeek();
-          const list = d.getElementById('questList');
-          if (!list) return;
-          const earned = quests.filter(q => data.quests.includes(q.id)).reduce((sum, q) => sum + q.xp, 0);
-          const possible = quests.reduce((sum, q) => sum + q.xp, 0);
-          list.innerHTML = quests.map(q => '<div class="quest"><input type="checkbox" id="q-' + q.id + '" ' + (data.quests.includes(q.id) ? 'checked' : '') + ' onchange="toggleQuest(\'' + q.id + '\',this.checked)"><label for="q-' + q.id + '">' + q.text + '<div class="small">+' + q.xp + ' XP</div></label></div>').join('');
-          d.getElementById('weekXP').textContent = earned + ' / ' + possible + ' XP';
-          d.getElementById('weekBar').style.width = (possible ? earned / possible * 100 : 0) + '%';
-          const note = d.querySelector('#quests .card > p.small');
-          if (note) note.textContent = 'Five quests are picked at random from a pool of 40 each week. Different quests have different XP rewards. Any step counts; it’s okay to skip or come back later.';
-          const message = d.getElementById('buddy-message');
-          if (message) {
-            const done = data.quests.length;
-            message.textContent = done === 0 ? 'One tiny step is enough. You can come back whenever you like.' : done === quests.length ? 'You did all five quests! Take a moment to enjoy that — no pressure to do more.' : done === 1 ? 'You got started! That counts. There’s no need to do everything at once.' : 'Nice progress. One thing at a time is plenty.';
+          function ensureStyle() {
+            if (d.getElementById('pq-extra-style')) return;
+            const style=d.createElement('style'); style.id='pq-extra-style';
+            style.textContent=`#pennyquest-buddy{display:flex;align-items:center;gap:16px;margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(26,42,64,.98),rgba(18,30,47,.98))}#pennyquest-buddy .buddy-art{width:78px;height:68px;flex:0 0 78px;display:grid;place-items:center}#pennyquest-buddy .blob{position:relative;width:58px;height:51px;border-radius:48% 52% 43% 57%/57% 51% 49% 43%;background:linear-gradient(145deg,#8decc0,#54c99b);box-shadow:inset -7px -6px 0 #28a97833,0 8px 18px #0003;animation:pq-float 3.2s ease-in-out infinite,pq-morph 5s ease-in-out infinite}#pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{content:"";position:absolute;top:21px;width:5px;height:7px;border-radius:50%;background:#123d32;animation:pq-blink 4.8s infinite}#pennyquest-buddy .blob:before{left:18px}#pennyquest-buddy .blob:after{right:18px}#pennyquest-buddy .mouth{position:absolute;left:25px;top:31px;width:9px;height:5px;border-bottom:2px solid #123d32;border-radius:0 0 10px 10px}#pennyquest-buddy .copy{min-width:0}#pennyquest-buddy strong{display:block;margin-bottom:4px}#pennyquest-buddy .copy span{font-size:12px;line-height:1.45;color:var(--muted)}@keyframes pq-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(4deg)}}@keyframes pq-morph{0%,100%{border-radius:48% 52% 43% 57%/57% 51% 49% 43%}50%{border-radius:55% 45% 55% 45%/47% 60% 40% 53%}}@keyframes pq-blink{0%,46%,50%,100%{transform:scaleY(1)}48%{transform:scaleY(.12)}}@media(prefers-reduced-motion:reduce){#pennyquest-buddy .blob,#pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{animation:none}}`;
+            d.head.appendChild(style);
           }
-        }
-
-        w.toggleQuest = (id, on) => {
-          const {data, quests} = prepareWeek();
-          const quest = quests.find(q => q.id === id);
-          if (!quest) return;
-          const done = data.quests.includes(id);
-          if (on && !done) { data.quests.push(id); data.xp += quest.xp; }
-          if (!on && done) { data.quests = data.quests.filter(item => item !== id); data.xp = Math.max(0, data.xp - quest.xp); }
-          storeData(data);
+          function drawBlob() {
+            const data=readData();
+            const current=d.getElementById('pennyquest-buddy');
+            if (data.blobEnabled===false) { if(current) current.remove(); return; }
+            ensureStyle();
+            const home=d.getElementById('home');
+            const intro=home && home.querySelector('h1 + p');
+            if(!intro) return;
+            const name=(data.blobName||'Pip').trim()||'Pip';
+            let buddy=current;
+            if(!buddy){buddy=d.createElement('div');buddy.id='pennyquest-buddy';buddy.setAttribute('role','status');intro.insertAdjacentElement('afterend',buddy);}
+            buddy.innerHTML='<div class="buddy-art" aria-hidden="true"><div class="blob"><i class="mouth"></i></div></div><div class="copy"><strong>Hi, I’m '+esc(name)+'!</strong><span id="pq-buddy-message">One tiny step is enough. Come back whenever you like.</span></div>';
+          }
+          function addSettings() {
+            if(d.getElementById('pq-settings')) return;
+            const tabs=d.querySelector('.tabs'), main=d.querySelector('main'); if(!tabs||!main) return;
+            const tab=d.createElement('button'); tab.type='button'; tab.dataset.tab='pq-settings'; tab.textContent='Instellingen & info'; tabs.appendChild(tab);
+            const section=d.createElement('section'); section.id='pq-settings'; section.className='page';
+            section.innerHTML=`<h1>Instellingen en informatie</h1><p class="muted">Geen account nodig. Je voorkeuren blijven in deze browser op dit apparaat.</p>
+              <div class="card"><h2>Blobmaatje</h2><label class="small" for="pq-blob-name">Naam van je blob</label><input id="pq-blob-name" type="text" maxlength="24" placeholder="Pip" autocomplete="off"><label style="display:flex;align-items:center;gap:10px;margin:8px 0"><input id="pq-blob-on" type="checkbox" style="width:20px;height:20px;margin:0"> Blobmaatje tonen op Home</label><button id="pq-save-settings" class="full">Instellingen opslaan</button><p class="small">De blob verschijnt alleen op Home. Animaties worden automatisch verminderd als je apparaat dat aangeeft.</p></div>
+              <div class="card"><h2>Korte disclaimer</h2><p class="small">PennyQuest is een algemeen hulpmiddel voor budgetteren en educatie. Het is geen financieel advies, schuldhulpverlening of medische of psychologische zorg, en het garandeert geen resultaat. Controleer berekeningen en maak zelf je keuzes. Gebruik geen bankinloggegevens of betaalkaartgegevens. Ingevoerde gegevens worden lokaal in je browser bewaard; die opslag is niet automatisch versleuteld.</p></div>
+              <div class="card"><h2>Privacy en accounts</h2><p class="small">Een account is niet nodig. De appcode bewaart je budgetgegevens, naam en instellingen in browseropslag op dit apparaat en stuurt deze niet naar een PennyQuest-account of -server. Hosting kan wel technische bezoekgegevens verwerken. Verwijder lokale gegevens via de browserinstellingen; maak eerst een reservekopie als je die wilt bewaren.</p></div>
+              <div class="card"><h2>Juridische documenten</h2><p><a href="./DISCLAIMER_SAMENVATTING.md" target="_blank" rel="noopener">Disclaimer</a> · <a href="./GEBRUIKSVOORWAARDEN.md" target="_blank" rel="noopener">Gebruiksvoorwaarden</a> · <a href="./PRIVACYVERKLARING.md" target="_blank" rel="noopener">Privacyverklaring</a></p><p class="small">Dit zijn informatieve sjablonen, geen formeel juridisch advies of garantie van juridische bescherming. Vul de placeholders in en laat de documenten vóór commercieel gebruik door een jurist controleren.</p></div>`;
+            main.appendChild(section);
+            tab.addEventListener('click',()=>w.setTab('pq-settings'));
+            const data=readData(); const name=section.querySelector('#pq-blob-name'); const enabled=section.querySelector('#pq-blob-on');
+            name.value=data.blobName||''; enabled.checked=data.blobEnabled!==false;
+            section.querySelector('#pq-save-settings').addEventListener('click',()=>{
+              const updated=readData(); updated.blobName=name.value.trim().slice(0,24)||'Pip'; updated.blobEnabled=enabled.checked; saveData(updated); drawBlob();
+              const b=section.querySelector('#pq-save-settings'); b.textContent='Opgeslagen'; setTimeout(()=>b.textContent='Instellingen opslaan',1300);
+            });
+          }
+          function renderQuests() {
+            const {data,chosen}=prepareWeek(); const list=d.getElementById('questList'); if(!list) return;
+            const earned=chosen.filter(q=>data.quests.includes(q.id)).reduce((s,q)=>s+q.xp,0); const total=chosen.reduce((s,q)=>s+q.xp,0);
+            list.innerHTML=chosen.map(q=>'<div class="quest"><input type="checkbox" id="pq-q-'+q.id+'" '+(data.quests.includes(q.id)?'checked':'')+' onchange="toggleQuest(\''+q.id+'\',this.checked)"><label for="pq-q-'+q.id+'">'+q.text+'<div class="small">+'+q.xp+' XP</div></label></div>').join('');
+            const xp=d.getElementById('weekXP'),bar=d.getElementById('weekBar'); if(xp)xp.textContent=earned+' / '+total+' XP'; if(bar)bar.style.width=(total?earned/total*100:0)+'%';
+            const note=d.querySelector('#quests .card > p.small'); if(note)note.textContent='Elke week worden 5 quests willekeurig gekozen uit 40. Elke quest geeft een eigen XP-beloning. Je mag overslaan of later terugkomen.';
+            const message=d.getElementById('pq-buddy-message'); if(message){const done=data.quests.length;message.textContent=done===0?'Eén klein stapje is genoeg. Je kunt later terugkomen.':done===chosen.length?'Alle vijf quests gedaan! Neem even de tijd om dat te vieren.':done===1?'Je bent begonnen — dat telt. Je hoeft niet alles tegelijk te doen.':'Goed bezig. Eén ding tegelijk is genoeg.';}
+          }
+          w.toggleQuest=(id,on)=>{const {data,chosen}=prepareWeek();const q=chosen.find(item=>item.id===id);if(!q)return;const done=data.quests.includes(id);if(on&&!done){data.quests.push(id);data.xp+=q.xp;}else if(!on&&done){data.quests=data.quests.filter(item=>item!==id);data.xp=Math.max(0,data.xp-q.xp);}saveData(data);w.render();};
+          w.render=()=>{originalRender();addSettings();drawBlob();renderQuests();};
+          const reset=d.getElementById('resetQuests');
+          if(reset)reset.onclick=()=>{if(!w.confirm('Een nieuwe questweek starten? Je totale XP blijft behouden.'))return;const data=readData();data.quests=[];data.weeklyQuestWeek='';data.week=w.weekKey();saveData(data);w.render();};
           w.render();
-        };
-        w.render = () => { oldRender(); addBlobBuddy(); addSettingsAndNotices(); renderWeekly(); updateName(); };
-        const reset = d.getElementById('resetQuests');
-        if (reset) reset.onclick = () => {
-          if (!w.confirm('Start a new week of quests? Your total XP stays.')) return;
-          const data = getData();
-          data.quests = [];
-          data.weeklyQuestWeek = '';
-          data.week = w.weekKey();
-          storeData(data);
-          w.render();
-        };
-        w.render();
-      } catch (error) {
-        console.error('Could not load weekly quests and settings:', error);
-      }
-    });
+        } catch(error) { console.error('PennyQuest enhancements could not load:',error); }
+      });
+    })();
   </script>
 </body>
 </html>
