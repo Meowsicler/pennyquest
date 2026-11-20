@@ -106,6 +106,66 @@
           intro.insertAdjacentElement('afterend', buddy);
         }
 
+        function addSettingsAndNotices() {
+          if (d.getElementById('pq-settings')) return;
+          const tabs = d.querySelector('.tabs');
+          const main = d.querySelector('main');
+          if (!tabs || !main) return;
+          const tab = d.createElement('button');
+          tab.type = 'button';
+          tab.dataset.tab = 'pq-settings';
+          tab.textContent = 'Settings & info';
+          tabs.appendChild(tab);
+          const section = d.createElement('section');
+          section.id = 'pq-settings';
+          section.className = 'page';
+          section.innerHTML = `
+            <h1>Settings & information</h1>
+            <p class="muted">A few personal settings and important information about this tool.</p>
+            <div class="card">
+              <h2>Your name</h2>
+              <label class="small" for="pq-name">What should PennyQuest call you? (Optional)</label>
+              <input id="pq-name" type="text" maxlength="40" autocomplete="nickname" placeholder="Your name or nickname">
+              <button class="full" id="pq-save-name">Save name</button>
+              <p class="small">Your name is saved only in this browser on this device. Leave it blank to use the default greeting.</p>
+            </div>
+            <div class="card">
+              <h2>About this tool</h2>
+              <p class="small">PennyQuest is a general budgeting and educational tool. It is not a bank, financial adviser, debt counsellor, medical provider, or ADHD treatment. Its suggestions and calculations are general and may not fit your circumstances. Check figures yourself and seek qualified, independent advice for important financial decisions.</p>
+              <p class="small">Using this tool does not guarantee savings or any particular financial result. You decide whether to act on a suggestion. Do not enter bank login details, payment-card information, or other highly sensitive information.</p>
+            </div>
+            <div class="card">
+              <h2>Privacy & your data</h2>
+              <p class="small">The app stores the information you enter in your browser’s local storage on this device; the app code does not send that information to the PennyQuest owner. Local storage is not encrypted by this app. Anyone with access to this browser or device may be able to see it. Avoid using this app on a shared device, and use the export feature to make a backup before clearing browser data.</p>
+              <p class="small">GitHub Pages hosts this website. The hosting provider may process technical connection data under its own policies. Clearing this site’s browser storage removes locally saved app data. An exported backup file is not protected by the app, so store it securely.</p>
+            </div>
+            <div class="card">
+              <h2>Important</h2>
+              <p class="small">This information is a plain-language explanation, not legal advice or a guarantee of legal compliance or protection from liability. Before inviting the public to use the app, review the laws and platform requirements that apply to you. Get advice from a qualified Dutch/EU legal or privacy professional if you need advice tailored to your situation. Re-check these notices if you add analytics, ads, accounts, or data sharing.</p>
+            </div>`;
+          main.appendChild(section);
+          tab.addEventListener('click', () => w.setTab('pq-settings'));
+          const nameInput = section.querySelector('#pq-name');
+          const currentName = getData().displayName || '';
+          nameInput.value = currentName;
+          section.querySelector('#pq-save-name').addEventListener('click', () => {
+            const data = getData();
+            data.displayName = nameInput.value.trim().slice(0, 40);
+            storeData(data);
+            updateName();
+            const button = section.querySelector('#pq-save-name');
+            button.textContent = 'Saved';
+            setTimeout(() => { button.textContent = 'Save name'; }, 1400);
+          });
+        }
+
+        function updateName() {
+          const data = getData();
+          const name = (data.displayName || '').trim();
+          const heading = d.querySelector('#pennyquest-buddy .buddy-copy strong');
+          if (heading) heading.textContent = name ? 'Hi, ' + name + '!' : 'Hi, I’m Pip!';
+        }
+
         function renderWeekly() {
           const {data, quests} = prepareWeek();
           const list = d.getElementById('questList');
@@ -134,7 +194,7 @@
           storeData(data);
           w.render();
         };
-        w.render = () => { oldRender(); addBlobBuddy(); renderWeekly(); };
+        w.render = () => { oldRender(); addBlobBuddy(); addSettingsAndNotices(); renderWeekly(); updateName(); };
         const reset = d.getElementById('resetQuests');
         if (reset) reset.onclick = () => {
           if (!w.confirm('Start a new week of quests? Your total XP stays.')) return;
@@ -147,7 +207,7 @@
         };
         w.render();
       } catch (error) {
-        console.error('Could not load weekly quests:', error);
+        console.error('Could not load weekly quests and settings:', error);
       }
     });
   </script>
