@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PennyQuest">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>PennyQuest — Make your money level up</title>
+<style>
+:root{--bg:#0b1220;--panel:#141f31;--panel2:#1b2940;--line:#293951;--text:#edf3ff;--muted:#9aabc3;--green:#6de0a4;--blue:#78b7ff;--gold:#ffc96b;--purple:#c5a0ff;--red:#ff8e9b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#182942 0,#0b1220 58%);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+header{padding:calc(18px + env(safe-area-inset-top)) 18px 16px;display:flex;justify-content:space-between;align-items:center;max-width:760px;margin:auto}
+.brand{font-weight:900;letter-spacing:.5px;font-size:20px}.brand span{color:var(--green)}.level{border:1px solid var(--line);background:#17253a;border-radius:99px;padding:8px 12px;font-size:12px;color:var(--gold);font-weight:800}
+main{max-width:760px;margin:auto;padding:0 15px calc(34px + env(safe-area-inset-bottom));}
+h1{font-size:28px;line-height:1.12;margin:12px 0 6px}h2{font-size:18px;margin:0 0 13px}h3{font-size:14px;margin:0 0 8px}.muted{color:var(--muted)}.small{font-size:12px;color:var(--muted)}
+.card{background:linear-gradient(145deg,rgba(26,42,64,.98),rgba(18,30,47,.98));border:1px solid var(--line);border-radius:20px;padding:17px;margin:13px 0;box-shadow:0 10px 28px #0002}
+.hero{padding:21px}.hero .amount{font-size:36px;font-weight:900;letter-spacing:-1px;margin:8px 0}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#101b2b;border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{font-size:20px;display:block;margin-top:5px}.green{color:var(--green)}.blue{color:var(--blue)}.gold{color:var(--gold)}.purple{color:var(--purple)}
+.bar{height:9px;background:#0b1422;border-radius:20px;overflow:hidden;margin:8px 0}.bar i{height:100%;display:block;border-radius:20px;background:var(--green);width:0}
+input,button,select{font:inherit}input,select{width:100%;background:#0c1727;color:var(--text);border:1px solid #344761;border-radius:12px;padding:12px;margin:6px 0 10px;outline:none}input:focus,select:focus{border-color:var(--green)}
+button{border:0;border-radius:12px;padding:12px 15px;background:var(--green);color:#092017;font-weight:850;cursor:pointer}button.secondary{background:#243650;color:var(--text);border:1px solid #3a506e}button.danger{background:#452632;color:#ffdce1;border:1px solid #71404b}button:active{transform:scale(.98)}.full{width:100%}
+.tabs{display:flex;gap:7px;overflow:auto;padding:4px 0 10px;position:sticky;top:0;background:#0b1220ed;z-index:4}
+.tabs button{white-space:nowrap;padding:10px 13px;background:#17253a;color:var(--muted);border:1px solid var(--line);font-size:13px}.tabs button.active{background:var(--green);color:#092017;border-color:var(--green)}
+.page{display:none}.page.active{display:block}
+.item{padding:12px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}.pill{font-size:11px;padding:5px 8px;border-radius:99px;background:#263b54;color:var(--muted);white-space:nowrap}
+.progress{height:11px;background:#0b1422;border-radius:20px;overflow:hidden}.progress>i{height:100%;display:block;background:linear-gradient(90deg,#48c98a,#9aefbd);border-radius:20px}
+.quest{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}.quest input{width:20px;height:20px;margin:2px 0;accent-color:var(--green)}.quest label{flex:1}
+.notice{background:#182a35;border:1px solid #315b4b;color:#baf3d2;border-radius:13px;padding:12px;font-size:12px;line-height:1.45}
+footer{text-align:center;color:#74869f;font-size:11px;padding:20px 0}
+@media(min-width:600px){.grid.three{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="brand">✦ PENNY<span>QUEST</span></div><div class="level" id="levelBadge">LEVEL 1 · 0 XP</div></header>
+<main>
+<div class="tabs" role="tablist">
+<button class="active" data-tab="home">Home</button><button data-tab="budget">Payday</button><button data-tab="goals">Goals</button><button data-tab="quests">Quests</button><button data-tab="wishlist">Wishlist</button>
+</div>
+<section id="home" class="page active">
+<h1>Your money. Your adventure.</h1><p class="muted">Small moves today. More freedom tomorrow.</p>
+<div class="card hero">
+<div class="row"><span class="small">EMERGENCY FUND</span><span class="pill">MAIN QUEST</span></div>
+<div class="amount" id="homeEmergency">€0.00</div>
+<div class="progress"><i id="homeProgress"></i></div>
+<div class="row small"><span id="homePercent">0% of €1,000</span><span id="homeRemaining">€1,000 to go</span></div>
+</div>
+<div class="grid">
+<div class="stat"><span class="small">TOTAL SAVED</span><b class="green" id="totalSaved">€0</b></div>
+<div class="stat"><span class="small">XP EARNED</span><b class="gold" id="totalXP">0 XP</b></div>
+</div>
+<div class="card"><div class="row"><h2>Latest paycheck plan</h2><span class="pill" id="payLabel">Not entered</span></div><div id="miniBudget" class="muted small">Add your next paycheck in the Payday tab.</div></div>
+<div class="card"><h2>Next achievement</h2><div id="nextAchievement">Save your first €100 to unlock Starter Saver.</div></div>
+<div class="notice">🔒 Your numbers stay on this device. PennyQuest does not connect to your bank or send your financial data anywhere. Back up your data if you change phones or clear browser data.</div>
+<div class="card"><h2>Data backup</h2><p class="small">Your budget stays on this device. Save a backup file occasionally, especially before changing phones or clearing Safari data.</p><div class="grid"><button class="secondary" id="exportData">Export backup</button><button class="secondary" id="importButton">Import backup</button></div><input id="importFile" type="file" accept="application/json" hidden></div>
+</section>
+<section id="budget" class="page">
+<h1>Payday planner</h1><p class="muted">Enter what actually landed in your account. Your income can change every month.</p>
+<div class="card"><h2>New paycheck</h2><label class="small">Amount received (€)</label><input id="payInput" type="number" min="0" step=".01" placeholder="e.g. 325"><button class="full" id="calcPay">Split my paycheck</button><div id="budgetResult"></div></div>
+<div class="card"><h2>Your split</h2><p class="small">Starting plan: 40% emergency · 20% future · 20% hobbies · 20% weekly spending.</p><div id="splitRows"></div><p class="small">You can adjust these percentages later. The plan is a guide, not a rule you must follow if your circumstances change.</p></div>
+</section>
+<section id="goals" class="page">
+<h1>Goal board</h1><p class="muted">Give your savings a destination.</p>
+<div class="card"><h2>Emergency fund</h2><label class="small">Current balance (€)</label><input id="emergencyInput" type="number" min="0" step=".01"><label class="small">Target (€)</label><input id="emergencyTarget" type="number" min="1" step=".01" value="1000"><button class="full" id="saveEmergency">Update emergency fund</button></div>
+<div class="card"><h2>Other savings balances</h2><label class="small">Future fund (€)</label><input id="futureInput" type="number" min="0" step=".01"><label class="small">Hobbies fund (€)</label><input id="hobbyInput" type="number" min="0" step=".01"><button class="full" id="saveOther">Save balances</button></div>
+<div class="card"><h2>Custom goals</h2><input id="goalName" placeholder="e.g. New gaming PC"><input id="goalTarget" type="number" min="1" step=".01" placeholder="Target amount (€)"><input id="goalCurrent" type="number" min="0" step=".01" placeholder="Already saved (€)"><button class="full" id="addGoal">Add goal</button><div id="customGoals"></div></div>
+</section>
+<section id="quests" class="page">
+<h1>Weekly quests</h1><p class="muted">Build habits, not perfection. Complete each quest once per week.</p>
+<div class="card"><div class="row"><h2>This week's XP</h2><span class="pill" id="weekXP">0 / 100 XP</span></div><div class="progress"><i id="weekBar"></i></div><div id="questList"></div><p class="small">Each quest earns 25 XP. Your XP is for motivation; it has no cash value.</p><button class="secondary full" id="resetQuests">Start a new week</button></div>
+<div class="card"><h2>Achievements</h2><div id="achievements"></div></div>
+</section>
+<section id="wishlist" class="page">
+<h1>Impulse speed bump</h1><p class="muted">Want it? Save it here first. Give your future self time to decide.</p>
+<div class="card"><h2>Add to wishlist</h2><input id="wishName" placeholder="What do you want?"><input id="wishPrice" type="number" min="0" step=".01" placeholder="Price (€)"><button class="full" id="addWish">Start 48-hour wait</button><div id="wishList"></div></div>
+<div class="notice">A timer doesn't mean you have to buy it when it ends. Check that it fits your hobbies or free-spending budget first. No dipping into emergency savings for impulse purchases.</div>
+</section>
+<footer>PennyQuest · A personal budgeting companion · No bank connection</footer>
+</main>
+<script>
+const KEY='pennyquest-v1';
+const defaults={emergency:0,target:1000,future:0,hobbies:0,pay:0,split:null,goals:[],wishes:[],xp:0,quests:[],week:weekKey()};
+let data;try{data={...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){data={...defaults}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function euro(n){return new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(Number(n)||0)}
+function weekKey(){const d=new Date();const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return x.getUTCFullYear()+'-'+Math.ceil((((x-y)/86400000)+1)/7)}
+function total(){return data.emergency+data.future+data.hobbies+data.goals.reduce((s,g)=>s+g.current,0)}
+function setTab(t){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===t));document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===t))}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.getElementById('calcPay').onclick=()=>{const n=Number(document.getElementById('payInput').value);if(!(n>0))return alert('Enter a paycheck amount greater than zero.');data.pay=n;data.split={emergency:n*.4,future:n*.2,hobbies:n*.2,spending:n*.2};document.getElementById('budgetResult').innerHTML=`<div class="notice" style="margin-top:12px">Payday split calculated. Move these amounts in your banking app, then update your balances in Goals.</div>`;save()};
+document.getElementById('saveEmergency').onclick=()=>{data.emergency=Math.max(0,Number(document.getElementById('emergencyInput').value)||0);data.target=Math.max(1,Number(document.getElementById('emergencyTarget').value)||1000);save()};
+document.getElementById('saveOther').onclick=()=>{data.future=Math.max(0,Number(document.getElementById('futureInput').value)||0);data.hobbies=Math.max(0,Number(document.getElementById('hobbyInput').value)||0);save()};
+document.getElementById('addGoal').onclick=()=>{const name=document.getElementById('goalName').value.trim(),target=Number(document.getElementById('goalTarget').value),current=Number(document.getElementById('goalCurrent').value)||0;if(!name||target<=0)return alert('Add a goal name and a target amount.');data.goals.push({name,target,current});['goalName','goalTarget','goalCurrent'].forEach(id=>document.getElementById(id).value='');save()};
+document.getElementById('addWish').onclick=()=>{const name=document.getElementById('wishName').value.trim(),price=Number(document.getElementById('wishPrice').value);if(!name||price<0||!Number.isFinite(price))return alert('Add an item and its price.');data.wishes.push({name,price,created:Date.now()});document.getElementById('wishName').value='';document.getElementById('wishPrice').value='';save()};
+function render(){
+const pct=Math.min(100,data.emergency/data.target*100);document.getElementById('homeEmergency').textContent=euro(data.emergency);document.getElementById('homeProgress').style.width=pct+'%';document.getElementById('homePercent').textContent=pct.toFixed(0)+'% of '+euro(data.target);document.getElementById('homeRemaining').textContent=euro(Math.max(0,data.target-data.emergency))+' to go';document.getElementById('totalSaved').textContent=euro(total());document.getElementById('totalXP').textContent=data.xp+' XP';document.getElementById('levelBadge').textContent='LEVEL '+(1+Math.floor(data.xp/100))+' · '+data.xp+' XP';
+document.getElementById('payLabel').textContent=data.pay?euro(data.pay):'Not entered';document.getElementById('miniBudget').innerHTML=data.split?Object.entries({Emergency:data.split.emergency,Future:data.split.future,Hobbies:data.split.hobbies,'Weekly spending':data.split.spending}).map(([k,v])=>`<div class="row item"><span>${k}</span><b>${euro(v)}</b></div>`).join(''):'Add your next paycheck in the Payday tab.';
+document.getElementById('nextAchievement').textContent=data.emergency>=1000?'🏆 Financial Foundation unlocked!':data.emergency>=500?'Halfway Hero — keep going!':data.emergency>=250?'Quartermaster — great progress!':'Save your first €100 to unlock Starter Saver.';
+document.getElementById('emergencyInput').value=data.emergency;document.getElementById('emergencyTarget').value=data.target;document.getElementById('futureInput').value=data.future;document.getElementById('hobbyInput').value=data.hobbies;
+document.getElementById('splitRows').innerHTML=data.split?Object.entries({Emergency:data.split.emergency,Future:data.split.future,Hobbies:data.split.hobbies,'Weekly spending':data.split.spending}).map(([k,v])=>`<div class="item row"><span>${k}</span><b>${euro(v)}</b></div>`).join(''):'Your split will appear here after you enter a paycheck.';
+document.getElementById('customGoals').innerHTML=data.goals.map((g,i)=>`<div class="item"><div class="row"><b>${esc(g.name)}</b><span class="pill">${euro(g.current)} / ${euro(g.target)}</span></div><div class="progress"><i style="width:${Math.min(100,g.current/g.target*100)}%"></i></div><div class="row"><button class="secondary" onclick="addToGoal(${i})">Add savings</button><button class="danger" onclick="deleteGoal(${i})">Delete</button></div></div>`).join('')||'<p class="small">No custom goals yet.</p>';
+if(data.week!==weekKey()){data.week=weekKey();data.quests=[];localStorage.setItem(KEY,JSON.stringify(data))}
+const qs=['I moved money into savings after payday','I stayed within my weekly spending allowance','I waited before making an impulse purchase','I checked my budget this week'];
+document.getElementById('questList').innerHTML=qs.map((q,i)=>`<div class="quest"><input type="checkbox" id="q${i}" ${data.quests.includes(i)?'checked':''} onchange="toggleQuest(${i},this.checked)"><label for="q${i}">${q}<div class="small">+25 XP</div></label></div>`).join('');
+const wx=data.quests.length*25;document.getElementById('weekXP').textContent=wx+' / 100 XP';document.getElementById('weekBar').style.width=wx+'%';
+document.getElementById('achievements').innerHTML=[{n:'First Coins',v:100},{n:'Quartermaster',v:250},{n:'Halfway Hero',v:500},{n:'Financial Foundation',v:1000},{n:'Fortress Builder',v:2000}].map(a=>`<div class="item row"><span>${data.emergency>=a.v?'🏆':'🔒'} ${a.n}</span><span class="pill">${euro(a.v)}</span></div>`).join('');
+document.getElementById('wishList').innerHTML=data.wishes.map((w,i)=>{const left=48*3600000-(Date.now()-w.created),ready=left<=0;return `<div class="item"><div class="row"><b>${esc(w.name)}</b><b>${euro(w.price)}</b></div><p class="small">${ready?'48 hours passed — check your budget before deciding.':'Wait '+Math.ceil(left/3600000)+' more hours before reconsidering.'}</p><button class="secondary" onclick="removeWish(${i})">Remove</button></div>`}).join('')||'<p class="small">Your wishlist is empty. Add something before buying it.</p>';
+}
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+window.addToGoal=i=>{const n=Number(prompt('How much did you add to '+data.goals[i].name+'?'));if(n>0){data.goals[i].current+=n;save()}};
+window.deleteGoal=i=>{if(confirm('Delete this goal?')){data.goals.splice(i,1);save()}};
+window.removeWish=i=>{data.wishes.splice(i,1);save()};
+window.toggleQuest=(i,on)=>{const had=data.quests.includes(i);if(on&&!had){data.quests.push(i);data.xp+=25}else if(!on&&had){data.quests=data.quests.filter(x=>x!==i);data.xp=Math.max(0,data.xp-25)}save()};
+document.getElementById('resetQuests').onclick=()=>{if(confirm('Start a new week? Your weekly quests will reset, but your total XP stays.')){data.quests=[];data.week=weekKey();save()}};
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+document.getElementById('exportData').onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pennyquest-backup.json';a.click();URL.revokeObjectURL(a.href)};
+document.getElementById('importButton').onclick=()=>document.getElementById('importFile').click();
+document.getElementById('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const imported=JSON.parse(await f.text());if(!imported||typeof imported!=='object'||!('emergency'in imported))throw new Error();if(confirm('Replace the current PennyQuest data with this backup?')){data={...defaults,...imported};save();alert('Backup restored.')}}catch(err){alert('That backup file could not be read.')}e.target.value=''};
+
+render();
+</script>
+</body></html>
