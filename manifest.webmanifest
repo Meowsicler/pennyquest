@@ -1,9 +1,9 @@
 {
-  "name": "PennyQuest — Money, made gentler",
+  "name": "PennyQuest — Blue tide-pool companion",
   "short_name": "PennyQuest",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f7f5ef",
-  "theme_color": "#f7f5ef",
-  "description": "A free, private, device-only budgeting companion with gentle spending tools."
+  "background_color": "#0b1220",
+  "theme_color": "#101a2d",
+  "description": "A free, private, device-only budgeting companion with gentle quests and a growing blob buddy."
 }
