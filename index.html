@@ -35,7 +35,27 @@
           ['cash-check','Check your available spending money',10],
           ['find-fee','Look for a bank fee you can avoid',40],
           ['sell-unused','List one unused item for sale',40],
-          ['celebrate-progress','Notice one money choice you feel good about',15]
+          ['celebrate-progress','Notice one money choice you feel good about',15],
+          ['open-bank-app','Open your banking app and just look',10],
+          ['write-one-bill','Write down one bill you need to remember',10],
+          ['check-calendar','Check your calendar for an upcoming expense',15],
+          ['move-one-euro','Move €1 to a savings goal, if you can',15],
+          ['save-receipt','Keep or photograph one receipt',10],
+          ['unsubscribe','Find out how to cancel an unused subscription',25],
+          ['price-alert','Set a price alert instead of buying right away',20],
+          ['use-what-you-have','Use something you already have instead of buying',20],
+          ['ask-for-help','Ask someone you trust to help with one money task',25],
+          ['five-minute-money','Spend five minutes on one money task',20],
+          ['set-reminder','Set a reminder for one financial task',10],
+          ['sort-one-paper','Sort one money-related letter or email',15],
+          ['check-direct-debit','Check one automatic payment',15],
+          ['plan-treat','Plan a small treat that fits your budget',20],
+          ['pause-and-breathe','Take a breath before a money decision',10],
+          ['break-task-down','Break one money task into a tiny first step',15],
+          ['check-savings-rate','Check whether your savings account has a rate',25],
+          ['choose-task','Pick just one money task to do today',10],
+          ['celebrate-starting','Give yourself credit for getting started',10],
+          ['update-backup','Check that your PennyQuest backup is up to date',20]
         ].map(([id, text, xp]) => ({id, text, xp}));
 
         function getData() { return w.eval('data'); }
@@ -56,13 +76,38 @@
             data.quests = [];
             storeData(data);
           }
-          const ids = data.weeklyQuestIds;
-          return {data, quests: ids.map(id => bank.find(q => q.id === id)).filter(Boolean)};
+          return {data, quests: data.weeklyQuestIds.map(id => bank.find(q => q.id === id)).filter(Boolean)};
         }
+
+        function addBlobBuddy() {
+          if (d.getElementById('pennyquest-buddy')) return;
+          const style = d.createElement('style');
+          style.textContent = `
+            #pennyquest-buddy{display:flex;align-items:center;gap:16px;margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(26,42,64,.98),rgba(18,30,47,.98))}
+            #pennyquest-buddy .buddy-art{width:78px;height:68px;flex:0 0 78px;display:grid;place-items:center}
+            #pennyquest-buddy .blob{position:relative;width:58px;height:51px;border-radius:48% 52% 43% 57%/57% 51% 49% 43%;background:linear-gradient(145deg,#8decc0,#54c99b);box-shadow:inset -7px -6px 0 #28a97833,0 8px 18px #0003;animation:blob-float 3.2s ease-in-out infinite,blob-morph 5s ease-in-out infinite}
+            #pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{content:"";position:absolute;top:21px;width:5px;height:7px;border-radius:50%;background:#123d32;animation:blob-blink 4.8s infinite}
+            #pennyquest-buddy .blob:before{left:18px}#pennyquest-buddy .blob:after{right:18px}
+            #pennyquest-buddy .blob-mouth{position:absolute;left:25px;top:31px;width:9px;height:5px;border-bottom:2px solid #123d32;border-radius:0 0 10px 10px}
+            #pennyquest-buddy .buddy-copy{min-width:0}#pennyquest-buddy .buddy-copy strong{display:block;margin-bottom:4px;color:var(--text)}#pennyquest-buddy .buddy-copy span{font-size:12px;line-height:1.45;color:var(--muted)}
+            @keyframes blob-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+            @keyframes blob-morph{0%,100%{border-radius:48% 52% 43% 57%/57% 51% 49% 43%}50%{border-radius:55% 45% 55% 45%/47% 60% 40% 53%}}
+            @keyframes blob-blink{0%,46%,50%,100%{transform:scaleY(1)}48%{transform:scaleY(.12)}}
+            @media(prefers-reduced-motion:reduce){#pennyquest-buddy .blob,#pennyquest-buddy .blob:before,#pennyquest-buddy .blob:after{animation:none}}
+          `;
+          d.head.appendChild(style);
+          const home = d.getElementById('home');
+          const intro = home && home.querySelector('h1 + p');
+          if (!intro) return;
+          const buddy = d.createElement('div');
+          buddy.id = 'pennyquest-buddy';
+          buddy.setAttribute('role','status');
+          buddy.innerHTML = '<div class="buddy-art" aria-hidden="true"><div class="blob"><i class="blob-mouth"></i></div></div><div class="buddy-copy"><strong>Hi, I’m Pip!</strong><span id="buddy-message">One tiny step is enough. You can come back whenever you like.</span></div>';
+          intro.insertAdjacentElement('afterend', buddy);
+        }
+
         function renderWeekly() {
-          const result = prepareWeek();
-          const data = result.data;
-          const quests = result.quests;
+          const {data, quests} = prepareWeek();
           const list = d.getElementById('questList');
           if (!list) return;
           const earned = quests.filter(q => data.quests.includes(q.id)).reduce((sum, q) => sum + q.xp, 0);
@@ -71,12 +116,17 @@
           d.getElementById('weekXP').textContent = earned + ' / ' + possible + ' XP';
           d.getElementById('weekBar').style.width = (possible ? earned / possible * 100 : 0) + '%';
           const note = d.querySelector('#quests .card > p.small');
-          if (note) note.textContent = 'Five quests are randomly picked from a pool of 20 each week. Complete them for different XP rewards.';
+          if (note) note.textContent = 'Five quests are picked at random from a pool of 40 each week. Different quests have different XP rewards. Any step counts; it’s okay to skip or come back later.';
+          const message = d.getElementById('buddy-message');
+          if (message) {
+            const done = data.quests.length;
+            message.textContent = done === 0 ? 'One tiny step is enough. You can come back whenever you like.' : done === quests.length ? 'You did all five quests! Take a moment to enjoy that — no pressure to do more.' : done === 1 ? 'You got started! That counts. There’s no need to do everything at once.' : 'Nice progress. One thing at a time is plenty.';
+          }
         }
+
         w.toggleQuest = (id, on) => {
-          const result = prepareWeek();
-          const data = result.data;
-          const quest = result.quests.find(q => q.id === id);
+          const {data, quests} = prepareWeek();
+          const quest = quests.find(q => q.id === id);
           if (!quest) return;
           const done = data.quests.includes(id);
           if (on && !done) { data.quests.push(id); data.xp += quest.xp; }
@@ -84,7 +134,7 @@
           storeData(data);
           w.render();
         };
-        w.render = () => { oldRender(); renderWeekly(); };
+        w.render = () => { oldRender(); addBlobBuddy(); renderWeekly(); };
         const reset = d.getElementById('resetQuests');
         if (reset) reset.onclick = () => {
           if (!w.confirm('Start a new week of quests? Your total XP stays.')) return;
